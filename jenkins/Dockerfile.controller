@@ -1,0 +1,11 @@
+FROM eclipse-temurin:21-jre
+ENV JENKINS_HOME=/var/jenkins_home
+RUN useradd --create-home --home-dir "$JENKINS_HOME" jenkins \
+    && mkdir -p /opt/jenkins "$JENKINS_HOME" \
+    && apt-get update \
+    && apt-get install -y curl \
+    && curl -fsSL https://get.jenkins.io/war-stable/latest/jenkins.war -o /opt/jenkins/jenkins.war \
+    && chown -R jenkins:jenkins /opt/jenkins "$JENKINS_HOME"
+WORKDIR /opt/jenkins
+USER jenkins
+ENTRYPOINT ["java", "-jar", "jenkins.war"]
