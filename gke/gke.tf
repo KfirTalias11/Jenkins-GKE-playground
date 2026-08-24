@@ -1,5 +1,5 @@
 resource "google_container_cluster" "gke" {
-  name     = local.cluster_name
+  name     = var.cluster_name
   location = var.region
 
   network    = google_compute_network.vpc.id
@@ -16,7 +16,7 @@ resource "google_container_cluster" "gke" {
 }
 
 resource "google_container_node_pool" "custom" {
-  name     = local.node_pool_name
+  name     = var.node_pool_name
   location = var.region
   cluster  = google_container_cluster.gke.name
 
@@ -31,11 +31,11 @@ resource "google_container_node_pool" "custom" {
     preemptible  = var.preemptible
     disk_size_gb = var.disk_size_gb
 
-    #    taint {
-    #     key    = "taint"
-    #     value  = "application"
-    #     effect = "NO_SCHEDULE"
+    taint{
+      key    = "taint"
+      value  = "application"
+      effect = "PREFER_NO_SCHEDULE"
 
-    #   }
+    }
   }
 }

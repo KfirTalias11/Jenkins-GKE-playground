@@ -1,0 +1,9 @@
+controller:
+  image:
+    repository: "REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/jenkins-controller"
+  admin:
+    password: "CHANGE_ME"
+
+agent:
+  image:
+    repository: "REGION-docker.pkg.dev/PROJECT_ID/REPO_NAME/jenkins-agent"

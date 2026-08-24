@@ -1,0 +1,9 @@
+FROM jenkins/inbound-agent:3355.v388858a_47b_33-20-jdk21
+
+ARG MAVEN_VERSION=3.9.16
+USER root
+RUN curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+      | tar xz -C /opt \
+ && mv "/opt/apache-maven-${MAVEN_VERSION}" /opt/maven
+ENV PATH=/opt/maven/bin:$PATH
+USER jenkins

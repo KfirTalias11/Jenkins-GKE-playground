@@ -1,0 +1,42 @@
+pipeline {
+    agent {
+        label 'maven'
+    }
+    options {
+        timeout(time: 15, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/jenkins-docs/simple-java-maven-app.git',
+                    branch: 'master'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn -B -ntp -DskipTests clean package'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'mvn -B -ntp test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
+            }
+        }
+        stage('Deliver') {
+            steps {
+                sh './jenkins/scripts/deliver.sh'
+            }
+        }
+    }
+    post {
+        success {
+            archiveArtifacts artifacts: 'target/*.jar'
+        }
+    }
+}

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jenkins
+  labels:
+    app.kubernetes.io/name: jenkins
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  serviceName: jenkins
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jenkins
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        checksum/jcasc: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        app.kubernetes.io/name: jenkins
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      serviceAccountName: jenkins
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: jenkins
+          image: "{{ required "controller.image.repository is required" .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: JAVA_OPTS
+              value: {{ .Values.controller.javaOpts | quote }}
+            - name: CASC_JENKINS_CONFIG
+              value: /var/jenkins_config/jcasc.yaml
+            - name: JENKINS_ADMIN_ID
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-admin
+                  key: jenkins-admin-id
+            - name: JENKINS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jenkins-admin
+                  key: jenkins-admin-password
+          startupProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /login
+              port: http
+            periodSeconds: 30
+            failureThreshold: 5
+          resources:
+            {{- toYaml .Values.controller.resources | nindent 12 }}
+          volumeMounts:
+            - name: jcasc
+              mountPath: /var/jenkins_config
+              readOnly: true
+            - name: jobs
+              mountPath: /var/jenkins_home/jobs
+              subPath: jobs
+      volumes:
+        - name: jcasc
+          configMap:
+            name: jenkins-jcasc
+        - name: jobs
+          persistentVolumeClaim:
+            claimName: jenkins-jobs
