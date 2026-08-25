@@ -1,0 +1,38 @@
+namespace: "jenkins"
+
+controller:
+  image:
+    repository: ""
+    tag: "1.0.1"
+  javaOpts: "-Djenkins.install.runSetupWizard=false"
+  admin:
+    id: "admin"
+    password: ""
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      memory: "3Gi"
+
+agent:
+  image:
+    repository: ""
+    tag: "1.0.0"
+
+service:
+  type: LoadBalancer
+  port: 80
+
+persistence:
+  size: "10Gi"
+
+pipelines:
+  - name: "simple-java-maven-app"
+    repoUrl: "https://github.com/KfirTalias11/Jenkins-GKE-playground.git"
+    branch: "*/jenkins-on-gke"
+    scriptPath: "jenkins/pipelines/Jenkinsfile"
+
+tolerations:
+  - key: "taint"
+    operator: "Exists"

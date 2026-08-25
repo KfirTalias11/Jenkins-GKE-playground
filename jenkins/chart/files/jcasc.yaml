@@ -1,0 +1,65 @@
+jenkins:
+  numExecutors: 0
+  mode: EXCLUSIVE
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "${JENKINS_ADMIN_ID}"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+  clouds:
+    - kubernetes:
+        name: "kubernetes"
+        namespace: "{{ .Release.Namespace }}"
+        jenkinsUrl: "http://jenkins.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}"
+        webSocket: true
+        podRetention: "never"
+        templates:
+          - name: "maven"
+            label: "maven"
+            namespace: "{{ .Release.Namespace }}"
+            serviceAccount: "jenkins"
+            runAsUser: 1000
+            runAsGroup: 1000
+            yaml: |
+              spec:
+                tolerations: {{ toYaml .Values.tolerations | nindent 18 }}
+            yamlMergeStrategy: "merge"
+            containers:
+              - name: "jnlp"
+                image: "{{ required "agent.image.repository is required" .Values.agent.image.repository }}:{{ .Values.agent.image.tag }}"
+                workingDir: "/home/jenkins/agent"
+                command: ""
+                args: ""
+                resourceRequestCpu: "500m"
+                resourceRequestMemory: "1Gi"
+                resourceLimitCpu: "1"
+                resourceLimitMemory: "2Gi"
+
+unclassified:
+  location:
+    url: "http://jenkins.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/"
+
+{{ if .Values.pipelines -}}
+jobs:
+{{- range .Values.pipelines }}
+  - script: >
+      pipelineJob('{{ .name }}') {
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote { url('{{ .repoUrl }}') }
+                branch('{{ .branch }}')
+              }
+            }
+            scriptPath('{{ .scriptPath }}')
+            lightweight(true)
+          }
+        }
+      }
+{{- end }}
+{{- end }}

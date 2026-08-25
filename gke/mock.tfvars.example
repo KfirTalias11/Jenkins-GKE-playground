@@ -1,12 +1,2 @@
-project_id     = "yalla-exam"
-region         = "europe-central2"
-vpc_name       = "yalla-vpc"
-subnet_name    = "yalla-subnet"
-cluster_name   = "yallacluster"
-node_pool_name = "yalla-pool"
-min_node_count = 1
-max_node_count = 5
-machine_type   = "e2-standard-4"
-disk_size_gb   = 20
-image_type     = "COS_CONTAINERD"
-preemptible    = true
+project_id = "your-gcp-project"
+name       = "yalla_name"

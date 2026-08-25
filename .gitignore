@@ -1,5 +1,8 @@
 .terraform/
+terraform.tfstate
+terraform.tfstate.*
 *.tfvars
-*.txt
 *.tfstate
+!*.tfvars.example
 .DS_Store
+values.local.yaml
