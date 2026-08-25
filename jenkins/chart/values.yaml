@@ -31,7 +31,7 @@ pipelines:
   - name: "simple-java-maven-app"
     repoUrl: "https://github.com/KfirTalias11/Jenkins-GKE-playground.git"
     branch: "*/jenkins-on-gke"
-    scriptPath: "pipelines/Jenkinsfile"
+    scriptPath: "jenkins/pipelines/Jenkinsfile"
 
 tolerations:
   - key: "taint"

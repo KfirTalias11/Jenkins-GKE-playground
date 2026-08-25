@@ -1,0 +1,7 @@
+configuration-as-code
+workflow-aggregator
+git
+junit
+job-dsl
+kubernetes
+pipeline-stage-view
